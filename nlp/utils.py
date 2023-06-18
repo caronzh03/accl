@@ -1,4 +1,4 @@
-from nltk.corpus import sentence_polarity
+from nltk.corpus import sentence_polarity, treebank
 from torch.utils.data import Dataset
 
 from vocab import Vocab
@@ -28,3 +28,23 @@ def load_sentence_polarity():
   test_data = pos_test_data + neg_test_data
 
   return train_data, test_data, vocab
+
+
+def load_treebank():
+  # sents stores tagged sentences
+  # postags stores tagged result
+  sents, postags = zip(*(zip(*sent) for sent in treebank.tagged_sents()))
+
+  # "<pad>" is a placeholder to make all inputs equal-length
+  vocab = Vocab.build(sents, reserved_tokens=["<pad>"])
+  tag_vocab = Vocab.build(postags)
+
+  # training set
+  train_data = [(vocab.convert_tokens_to_ids(sentence), tag_vocab.convert_tokens_to_ids(tags)) \
+               for sentence, tags in zip(sents[:3000], postags[:3000])]
+  # test set
+  test_data = [(vocab.convert_tokens_to_ids(sentence), tag_vocab.convert_tokens_to_ids(tags)) \
+               for sentence, tags in zip(sents[3000:], postags[3000:])]
+  
+  return train_data, test_data, vocab, tag_vocab             
+

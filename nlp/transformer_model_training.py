@@ -6,7 +6,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_sequence
 import torch
 
 from vocab import Vocab
-from utils import load_sentence_polarity, BowDataset
+from utils import load_sentence_polarity, BowDataset, length_to_mask
 
 
 class PositionalEncoding(nn.Module):
@@ -44,6 +44,7 @@ class Transformer(nn.Module):
     self.transformer = nn.TransformerEncoder(encoder_layer, num_layers)
     # output
     self.output = nn.Linear(hidden_dim, num_class)
+    self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
   def forward(self, inputs, lengths):
     """
@@ -54,30 +55,13 @@ class Transformer(nn.Module):
     inputs = torch.transpose(inputs, 0, 1)  
     hidden_states = self.embeddings(inputs)
     hidden_states = self.position_embedding(hidden_states)
-    attention_mask = length_to_mask(lengths) == False
+    attention_mask = length_to_mask(lengths, self.device) == False
     hidden_states = self.transformer(hidden_states, src_key_padding_mask=attention_mask)
     hidden_states = hidden_states[0, :, :]
     outputs = self.output(hidden_states)
     probs = F.log_softmax(outputs, dim=1)
     return probs
 
-
-def length_to_mask(lengths):
-  """
-    Convert input sequence's length to Mask matrix.
-
-    >>> lengths = torch.tensor([3, 5, 4])
-    >>> length_to_mask(lengths)
-    >>> tensor([[True, True, True, False, False],
-                [True, True, True, True, True],
-                [True, True, True, True, False]])
-    :param lengths: [batch,]
-    :return: batch * max_len 
-  """
-  max_len = torch.max(lengths)
-  mask = torch.arange(max_len).expand(lengths.shape[0], max_len) < lengths.unsqueeze(1)
-  return mask   
-    
 
 def collate_fn(examples):
   """

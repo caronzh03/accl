@@ -20,7 +20,8 @@ class LSTM(nn.Module):
       lengths: length of each original sequence.
     """
     embeddings = self.embeddings(inputs)
-    x_pack = pack_padded_sequence(embeddings, lengths, batch_first=True, enforce_sorted=False)
+    # lengths must be on CPU if provided as tensor, therefore convert it to list instead
+    x_pack = pack_padded_sequence(embeddings, lengths.tolist(), batch_first=True, enforce_sorted=False)
     # hn: final hidden state; cn: final cell state
     hidden, (hn, cn) = self.lstm(x_pack)
     outputs = self.linear(hn[-1])

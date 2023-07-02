@@ -1,5 +1,6 @@
 from nltk.corpus import sentence_polarity, treebank
 from torch.utils.data import Dataset
+import torch
 
 from vocab import Vocab
 
@@ -46,5 +47,22 @@ def load_treebank():
   test_data = [(vocab.convert_tokens_to_ids(sentence), tag_vocab.convert_tokens_to_ids(tags)) \
                for sentence, tags in zip(sents[3000:], postags[3000:])]
   
-  return train_data, test_data, vocab, tag_vocab             
+  return train_data, test_data, vocab, tag_vocab
+
+
+def length_to_mask(lengths, device):
+  """
+    Convert input sequence's length to Mask matrix.
+
+    >>> lengths = torch.tensor([3, 5, 4])
+    >>> length_to_mask(lengths)
+    >>> tensor([[True, True, True, False, False],
+                [True, True, True, True, True],
+                [True, True, True, True, False]])
+    :param lengths: [batch,]
+    :return: batch * max_len
+  """
+  max_len = torch.max(lengths)
+  mask = torch.arange(max_len).to(device).expand(lengths.shape[0], max_len) < lengths.unsqueeze(1)
+  return mask
 

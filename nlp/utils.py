@@ -1,5 +1,5 @@
 from nltk.corpus import sentence_polarity, treebank
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 import torch
 
 from vocab import Vocab
@@ -66,3 +66,39 @@ def length_to_mask(lengths, device):
   mask = torch.arange(max_len).to(device).expand(lengths.shape[0], max_len) < lengths.unsqueeze(1)
   return mask
 
+
+def load_reuters(bos, eos, pad):
+  from nltk.corpus import reuters
+  # get all sentences in Reuters
+  text = reuters.sents()
+  # lower-case all words
+  text = [[word.lower() for word in sentence] for sentence in text]
+  # build word bank
+  vocab = Vocab.build(text, reserved_tokens=[bos, eos, pad])
+  # convert words to ids
+  corpus = [vocab.convert_tokens_to_ids(sentence) for sentence in text]
+  return corpus, vocab
+
+
+
+def get_loader(dataset, batch_size):
+  """
+  Return a DataLoader that loads batches of input samples from dataset.
+  """
+  return DataLoader(dataset, batch_size=batch_size, collate_fn=dataset.collate_fn, shuffle=True)
+
+
+
+def save_pretrained(vocab, embeds, save_path):
+  """
+  Save vocab and embeddings obtained from training to a file.
+  """
+  with open(save_path, "w") as writer:
+    # save embeddings' dimension
+    writer.write(f"{embeds.shape[0]} {embeds.shape[1]}\n")
+    for idx, token in enumerate(vocab.idx_to_token):
+      # x is a vector
+      vec = " ".join(f"{x}" for x in embeds[idx])
+      # each row: (token, its enbeddings)
+      # e.g. (token [0.12, 0.45, -9.32, ...])
+      writer.write(f"{token} {vec}\n")

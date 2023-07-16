@@ -6,12 +6,9 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm.auto import tqdm
 
 from vocab import Vocab
-from utils import load_reuters, get_loader, save_pretrained
+from utils import load_reuters, get_loader, save_pretrained, BOS_TOKEN, EOS_TOKEN, PAD_TOKEN
 
 
-BOS_TOKEN = "<bos>"
-EOS_TOKEN = "<eos>"
-PAD_TOKEN = "<pad>"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -76,7 +73,7 @@ def main():
   num_epoch = 10
 
   # load data
-  corpus, vocab = load_reuters(BOS_TOKEN, EOS_TOKEN, PAD_TOKEN)
+  corpus, vocab = load_reuters()
   dataset = RnnlmDataset(corpus, vocab)
   data_loader = get_loader(dataset, batch_size)
 

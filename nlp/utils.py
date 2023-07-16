@@ -5,6 +5,11 @@ import torch
 from vocab import Vocab
 
 
+BOS_TOKEN = "<bos>"
+EOS_TOKEN = "<eos>"
+PAD_TOKEN = "<pad>"
+
+
 class BowDataset(Dataset):
   def __init__(self, data):
     self.data = data
@@ -67,14 +72,14 @@ def length_to_mask(lengths, device):
   return mask
 
 
-def load_reuters(bos, eos, pad):
+def load_reuters():
   from nltk.corpus import reuters
   # get all sentences in Reuters
   text = reuters.sents()
   # lower-case all words
   text = [[word.lower() for word in sentence] for sentence in text]
   # build word bank
-  vocab = Vocab.build(text, reserved_tokens=[bos, eos, pad])
+  vocab = Vocab.build(text, reserved_tokens=[BOS_TOKEN, EOS_TOKEN, PAD_TOKEN])
   # convert words to ids
   corpus = [vocab.convert_tokens_to_ids(sentence) for sentence in text]
   return corpus, vocab

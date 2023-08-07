@@ -262,7 +262,7 @@ class ElmoLstmEncoder(nn.Module):
 
 configs = {
     'max_tok_len': 50,
-    'train_file': './train.txt', # path to training file, line-by-line and tokenized
+    'train_file': './train_data/train.txt', # path to training file, line-by-line and tokenized
     'model_path': './elmo_bilm',
     'char_embedding_dim': 50,
     'char_conv_filters': [[1, 32], [2, 32], [3, 64], [4, 128], [5, 256], [6, 512], [7, 1024]],

@@ -1,2 +1,3 @@
 __pycache__/
 nlp/elmo_bilm/
+nlp/train_data/

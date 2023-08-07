@@ -8,6 +8,8 @@ from vocab import Vocab
 BOS_TOKEN = "<bos>"
 EOS_TOKEN = "<eos>"
 PAD_TOKEN = "<pad>"
+BOW_TOKEN = "<bow>"
+EOW_TOKEN = "<eow>"
 
 
 class BowDataset(Dataset):

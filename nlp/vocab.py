@@ -42,3 +42,8 @@ class Vocab:
   def convert_ids_to_tokens(self, indices):
     return [self.idx_to_token[idx] for idx in indices]
 
+
+
+def save_vocab(vocab, path):
+  with open(path, 'w') as writer:
+    writer.write("\n".join(vocab.idx_to_token))

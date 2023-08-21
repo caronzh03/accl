@@ -1,3 +1,4 @@
 __pycache__/
 nlp/elmo_bilm/
 nlp/train_data/
+nlp/bert/ft-sst2/

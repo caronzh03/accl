@@ -3,3 +3,4 @@ nlp/elmo_bilm/
 nlp/train_data/
 nlp/bert/ft-sst2/
 classification/runs/
+classification/models/

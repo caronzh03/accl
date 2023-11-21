@@ -39,17 +39,16 @@ def train(model, train_data, val_data, learning_rate, epochs):
 
     for train_input, train_label in tqdm(train_dataloader):
       train_label = train_label.to(device)
-      mask = train_input['attention_mask'].to(device)
-      # TODO: check dim
+      # (2, 1, 512) -> (2, 512)
+      mask = train_input['attention_mask'].squeeze(1).to(device)
       input_id = train_input['input_ids'].squeeze(1).to(device)
 
+      # input_id & mask shape: (batch_size, max_seq_len); e.g. (2, 512)
       output = model(input_id, mask)
 
       batch_loss = criterion(output, train_label.long())
-      # TODO: check batch_loss.item() output
       total_loss_train += batch_loss.item()
 
-      # TODO: check model output: should be a logits vector
       acc = (output.argmax(dim=1) == train_label).sum().item()
       total_acc_train += acc
 
@@ -66,7 +65,7 @@ def train(model, train_data, val_data, learning_rate, epochs):
     with torch.no_grad():
       for val_input, val_label in val_dataloader:
         val_label = val_label.to(device)
-        mask = val_input['attention_mask'].to(device)
+        mask = val_input['attention_mask'].squeeze(1).to(device)
         input_id = val_input['input_ids'].squeeze(1).to(device)
 
         output = model(input_id, mask)
@@ -119,7 +118,7 @@ def test(model, test_data):
   with torch.no_grad():
     for test_input, test_label in test_dataloader:
       test_label = test_label.to(device)
-      mask = test_input['attention_mask'].to(device)
+      mask = test_input['attention_mask'].squeeze(1).to(device)
       input_id = test_input['input_ids'].squeeze(1).to(device)
 
       output = model(input_id, mask)

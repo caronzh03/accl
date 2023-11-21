@@ -11,6 +11,11 @@ class BertClassifier(nn.Module):
     self.relu = nn.ReLU()
 
   def forward(self, input_ids, mask):
+    """
+    @param input_ids: in shape of (batch_size, max_sequence_length).
+    @param mask: in shape of (batch_size, max_sequence_length).
+    @return logits in shape of (batch_size, num_classes), in this case num_classes=5.
+    """
     # ignore first output, which is the embedding vectors of all tokens
     # in a sequence; only care about second output, which is the embedding
     # vector of [CLS] token, which will be used as input to classifier

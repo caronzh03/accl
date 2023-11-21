@@ -37,5 +37,3 @@ class Dataset(torch.utils.data.Dataset):
     batch_y = self.get_batch_labels(idx)
     return batch_texts, batch_y
 
-
-                    

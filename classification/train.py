@@ -42,17 +42,17 @@ def train(model, train_data, val_data, learning_rate, epochs):
       mask = train_input['attention_mask'].to(device)
       # TODO: check dim
       input_id = train_input['input_ids'].squeeze(1).to(device)
-      
+
       output = model(input_id, mask)
 
       batch_loss = criterion(output, train_label.long())
       # TODO: check batch_loss.item() output
       total_loss_train += batch_loss.item()
-      
+
       # TODO: check model output: should be a logits vector
       acc = (output.argmax(dim=1) == train_label).sum().item()
       total_acc_train += acc
-      
+
       model.zero_grad()
       batch_loss.backward()
       optimizer.step()
@@ -99,7 +99,7 @@ def train(model, train_data, val_data, learning_rate, epochs):
       save_checkpoint(model, epoch_num, val_acc, val_loss)
       best_val_acc = val_acc
       best_val_loss = val_loss
-  
+
 
 def save_checkpoint(model, epoch, acc, loss):
   out_path = "models/bert_classifier_epoch{}_acc{:.2f}_loss{:.2f}.pt".format(
@@ -126,7 +126,7 @@ def test(model, test_data):
 
       acc = (output.argmax(dim=1) == test_label).sum().item()
       total_acc_test += acc
-  
+
   print(f"Test accuracy: {total_acc_test / len(test_data): .3f}")
 
 

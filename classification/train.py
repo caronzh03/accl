@@ -123,7 +123,7 @@ def main():
   # hyperparameters
   batch_size = 2
   lr = 1e-6
-  epochs = 10
+  epochs = 50
 
   # data
   datapath = '/media/tianlu/SSD/datasets/bbc_classification/bbc-text.csv'

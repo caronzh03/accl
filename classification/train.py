@@ -1,15 +1,15 @@
-import torch
+import argparse
 from torch import nn
 from torch.optim import Adam
-from torchinfo import summary
 from torch.utils.tensorboard import SummaryWriter
+from torchinfo import summary
 from tqdm import tqdm
-import pandas as pd
 import numpy as np
+import pandas as pd
+import torch
 
-from dataset import Dataset
-from eval import Evaler
 from bert_model import BertClassifier
+from dataset import SSTDataset
 
 
 class Trainer(object):
@@ -26,7 +26,7 @@ class Trainer(object):
 
 
   def train(self, train_data, val_data):
-    train, val = Dataset(train_data), Dataset(val_data)
+    train, val = SSTDataset(train_data), SSTDataset(val_data)
     train_dataloader = torch.utils.data.DataLoader(train, batch_size=self.batch_size,
                                                    shuffle=True)
     val_dataloader = torch.utils.data.DataLoader(val, batch_size=self.batch_size)
@@ -119,32 +119,38 @@ class Trainer(object):
 
 
 def main():
+  # args
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--bs", type=int, default=16, help="batch size")
+  parser.add_argument("--lr", type=float, default=1e-6, help="learning rate")
+  parser.add_argument("--epochs", type=int, default=2, help="num of epochs")
+  parser.add_argument("--datapath", type=str,
+      default="/media/tianlu/SSD/datasets/stanford-sentiment-treebank/train.csv",
+      help="path to training and validation data")
+  parser.add_argument("--classes", type=int, default=2,
+      help="number of classes in output layer")
+  args = parser.parse_args()
+  print(args)
 
   # hyperparameters
-  batch_size = 2
-  lr = 1e-6
-  epochs = 50
+  batch_size = args.bs
+  lr = args.lr
+  epochs = args.epochs
 
   # data
-  datapath = '/media/tianlu/SSD/datasets/bbc_classification/bbc-text.csv'
-  df = pd.read_csv(datapath)
-  # 80% - 10% - 10% split
+  df = pd.read_csv(args.datapath)
+  # 90%-10% split
   np.random.seed(112)
-  df_train, df_val, df_test = np.split(df.sample(frac=1, random_state=42),
-                                       [int(.8*len(df)), int(.9*len(df))])
-  print(f"train:{len(df_train)}, val:{len(df_val)}, test:{len(df_test)}")
+  df_train, df_val = np.split(df.sample(frac=1, random_state=42), [int(.9*len(df))])
+  print(f"train:{len(df_train)}, val:{len(df_val)}")
 
   # model
-  model = BertClassifier(dropout=0.5, embedding_dim=768, num_classes=5)
+  model = BertClassifier(dropout=0.5, embedding_dim=768, num_classes=args.classes)
   summary(model, [(2, 64), (2, 64)], dtypes=[torch.long, torch.long])
 
   # train
   trainer = Trainer(model, batch_size, lr, epochs)
   trainer.train(df_train, df_val)
-
-  # test
-  evaler = Evaler(model, batch_size)
-  evaler.eval(df_test)
 
 
 if __name__ == "__main__":

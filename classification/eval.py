@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
 
-from dataset import Dataset
+from dataset import SSTDataset
 
 
 class Evaler(object):
@@ -11,7 +11,7 @@ class Evaler(object):
     self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
   def eval(self, eval_data):
-    test = Dataset(eval_data)
+    test = SSTDataset(eval_data)
     test_dataloader = torch.utils.data.DataLoader(test, batch_size=self.batch_size)
     self.model.to(self.device)
 

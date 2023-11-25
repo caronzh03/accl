@@ -2,14 +2,12 @@ import torch
 from transformers import BertTokenizer
 
 from bert_model import BertClassifier
-from dataset import labels
 
 
-tech_news = "tech helps disabled speed demons an organisation has been launched to encourage disabled people to get involved in all aspects of motorsport  which is now increasingly possible thanks to technological innovations."
+pos_review = "this movie told a very touch story and I loved it!"
+neg_review = "the movie was confusing to watch given the reverse-chronilogical order of events"
 
-sports_news = "The Texas Rangers defeated the Houston Astros 11-4 in Game 7 of the American League Championship Series Monday to win the American League pennant."
-
-example_texts = [tech_news, sports_news]
+example_texts = [pos_review, neg_review]
 
 # tokenize
 tokenizer = BertTokenizer.from_pretrained('bert-base-cased')

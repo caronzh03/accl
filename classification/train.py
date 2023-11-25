@@ -24,7 +24,6 @@ class Trainer(object):
     self.model = model
     self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-
   def train(self, train_data, val_data):
     train, val = SSTDataset(train_data), SSTDataset(val_data)
     train_dataloader = torch.utils.data.DataLoader(train, batch_size=self.batch_size,
@@ -38,6 +37,8 @@ class Trainer(object):
 
     best_val_acc = 0.0
     best_val_loss = float('inf')
+    step = 0
+    val_step = 0
 
     for epoch_num in range(self.epochs):
 
@@ -46,7 +47,10 @@ class Trainer(object):
       total_acc_train = 0
       total_loss_train = 0
 
-      for train_input, train_label in tqdm(train_dataloader):
+      n_processed = 0
+
+      train_progress = tqdm(train_dataloader, ncols=150)
+      for train_input, train_label in train_progress:
         train_label = train_label.to(self.device)
         # (2, 1, 512) -> (2, 512)
         mask = train_input['attention_mask'].squeeze(1).to(self.device)
@@ -65,14 +69,29 @@ class Trainer(object):
         batch_loss.backward()
         optimizer.step()
 
+        n_processed += output.shape[0]
+        train_loss = total_loss_train / n_processed
+        train_accuracy = total_acc_train / n_processed
+        train_progress.set_description("Epoch {} (train): loss={:.3f}, accuracy={:.3f}".format(
+            epoch_num, train_loss, train_accuracy))
+
+        step += 1
+        if step % 100 == 0:
+          self.writer.add_scalar("loss/train", train_loss, step)
+          self.writer.add_scalar("accuracy/train", train_accuracy, step)
+
 
       ### validation ###
       self.model.eval()
       total_acc_val = 0
       total_loss_val = 0
+      val_loss, val_acc = 0, 0
+
+      n_processed = 0
 
       with torch.no_grad():
-        for val_input, val_label in val_dataloader:
+        validation_progress = tqdm(val_dataloader, ncols=150)
+        for val_input, val_label in validation_progress:
           val_label = val_label.to(self.device)
           mask = val_input['attention_mask'].squeeze(1).to(self.device)
           input_id = val_input['input_ids'].squeeze(1).to(self.device)
@@ -85,35 +104,29 @@ class Trainer(object):
           acc = (output.argmax(dim=1) == val_label).sum().item()
           total_acc_val += acc
 
+          n_processed += output.shape[0]
+          val_loss = total_loss_val / n_processed
+          val_acc = total_acc_val / n_processed
+          validation_progress.set_description(
+              "Epoch {} (validate): loss={:.3f}, accuracy={:.3f}".format(
+              epoch_num, val_loss, val_acc))
 
-      ### summary ###
-      train_loss = total_loss_train / len(train_data)
-      train_acc = total_acc_train / len(train_data)
-      val_loss = total_loss_val / len(val_data)
-      val_acc = total_acc_val / len(val_data)
-      self.update_summary(epoch_num, train_loss, train_acc, val_loss, val_acc)
+          val_step += 1
+          if val_step % 100 == 0:
+            self.writer.add_scalar("loss/val", val_loss, val_step)
+            self.writer.add_scalar("accuracy/val", val_acc, val_step)
 
-      ### save checkpoint ###
-      if (val_acc > best_val_acc and val_loss < best_val_loss):
-        self.save_checkpoint(epoch_num, val_acc, val_loss)
-        best_val_acc = val_acc
-        best_val_loss = val_loss
+        # save checkpoint after iterating through all validation data
+        if (val_acc > best_val_acc and val_loss < best_val_loss):
+          # use training step to save checkpoint
+          self.save_checkpoint(step, val_acc, val_loss)
+          best_val_acc = val_acc
+          best_val_loss = val_loss
 
-  def update_summary(self, epoch_num, train_loss, train_acc, val_loss, val_acc):
-    print(f'Epochs: {epoch_num} \
-      | Train Loss: {train_loss: .3f} \
-      | Train Accuracy: {train_acc: .3f} \
-      | Val Loss: {val_loss: .3f} \
-      | Val Accuracy: {val_acc: .3f}')
 
-    self.writer.add_scalar("loss/train", train_loss, epoch_num)
-    self.writer.add_scalar("accuracy/train", train_acc, epoch_num)
-    self.writer.add_scalar("loss/val", val_loss, epoch_num)
-    self.writer.add_scalar("accuracy/val", val_acc, epoch_num)
-
-  def save_checkpoint(self, epoch, acc, loss):
-    out_path = "models/bert_classifier_epoch{}_acc{:.2f}_loss{:.2f}.pt".format(
-      epoch, acc, loss)
+  def save_checkpoint(self, step, acc, loss):
+    out_path = "models/bert_classifier_step{}_acc{:.2f}_loss{:.2f}.pt".format(
+      step, acc, loss)
     torch.save(self.model.state_dict(), out_path)
     print(f"Model saved to {out_path}")
 

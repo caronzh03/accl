@@ -3,7 +3,7 @@ from transformers import BertModel
 
 
 class BertClassifier(nn.Module):
-  def __init__(self, dropout=0.5, embedding_dim=768, num_classes=5):
+  def __init__(self, dropout=0.5, embedding_dim=768, num_classes=2):
     super(BertClassifier, self).__init__()
     self.bert = BertModel.from_pretrained('bert-base-uncased')
     self.dropout = nn.Dropout(dropout)

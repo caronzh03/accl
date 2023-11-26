@@ -10,6 +10,7 @@ import torch
 
 from bert_model import BertClassifier
 from dataset import SSTDataset
+from eval import Evaler
 
 
 class Trainer(object):
@@ -152,10 +153,11 @@ def main():
 
   # data
   df = pd.read_csv(args.datapath)
-  # 90%-10% split
+  # 85%-10%-5% train-val-eval
   np.random.seed(112)
-  df_train, df_val = np.split(df.sample(frac=1, random_state=42), [int(.9*len(df))])
-  print(f"train:{len(df_train)}, val:{len(df_val)}")
+  df_train, df_val, df_eval = np.split(df.sample(frac=1, random_state=42),
+                                       [int(.85*len(df)), int(.95*(len(df)))])
+  print(f"train:{len(df_train)}, val:{len(df_val)}, eval:{len(df_eval)}")
 
   # model
   model = BertClassifier(dropout=0.5, embedding_dim=768, num_classes=args.classes)
@@ -164,6 +166,10 @@ def main():
   # train
   trainer = Trainer(model, batch_size, lr, epochs)
   trainer.train(df_train, df_val)
+
+  # eval
+  evaler = Evaler(model, batch_size)
+  evaler.eval(df_eval)
 
 
 if __name__ == "__main__":

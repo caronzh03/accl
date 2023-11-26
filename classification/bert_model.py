@@ -8,7 +8,6 @@ class BertClassifier(nn.Module):
     self.bert = BertModel.from_pretrained('bert-base-uncased')
     self.dropout = nn.Dropout(dropout)
     self.linear = nn.Linear(embedding_dim, num_classes)
-    self.relu = nn.ReLU()
 
   def forward(self, input_ids, mask):
     """
@@ -23,6 +22,5 @@ class BertClassifier(nn.Module):
       return_dict=False)
     dropout_output = self.dropout(pooled_output)
     linear_output = self.linear(dropout_output)
-    final_layer = self.relu(linear_output)
-    return final_layer
+    return linear_output
 

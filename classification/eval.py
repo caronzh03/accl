@@ -18,7 +18,7 @@ class Evaler(object):
     total_acc_test = 0
     self.model.eval()
     with torch.no_grad():
-      for test_input, test_label in tqdm(test_dataloader):
+      for test_input, test_label in tqdm(test_dataloader, desc="Eval"):
         test_label = test_label.to(self.device)
         mask = test_input['attention_mask'].squeeze(1).to(self.device)
         input_id = test_input['input_ids'].squeeze(1).to(self.device)

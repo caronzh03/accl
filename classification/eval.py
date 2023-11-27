@@ -13,7 +13,7 @@ class Evaler(object):
   def eval(self, eval_data):
     test = SSTDataset(eval_data)
     test_dataloader = torch.utils.data.DataLoader(test, batch_size=self.batch_size)
-    self.model.to(self.device)
+    self.model = self.model.to(self.device)
 
     total_acc_test = 0
     self.model.eval()

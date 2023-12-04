@@ -25,6 +25,21 @@ class SSTDataset(torch.utils.data.Dataset):
     return self.texts[idx], np.array(self.labels[idx])
 
 
+class SSTTestDataset(torch.utils.data.Dataset):
+  def __init__(self, df):
+    self.original_texts = list(df['sentence'])
+    self.texts = [tokenizer(text, padding='max_length', max_length=512,
+                            truncation=True, return_tensors="pt")
+                            for text in df['sentence']]
+
+  def __len__(self):
+    return len(self.original_texts)
+
+  def __getitem__(self, idx):
+    return self.texts[idx], self.original_texts[idx]
+
+
+
 class BBCDataset(torch.utils.data.Dataset):
   def __init__(self, df):
     """

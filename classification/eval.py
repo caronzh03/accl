@@ -24,9 +24,34 @@ class Evaler(object):
         input_id = test_input['input_ids'].squeeze(1).to(self.device)
 
         output = self.model(input_id, mask)
+        predicted_label = output.argmax(dim=1)
 
-        acc = (output.argmax(dim=1) == test_label).sum().item()
+        acc = (predicted_label == test_label).sum().item()
         total_acc_test += acc
 
     print(f"Test accuracy: {total_acc_test / len(eval_data): .3f}")
+
+
+def main():
+  import pandas as pd
+  import numpy as np
+
+  from bert_model import BertClassifier
+
+  test_data = "/media/tianlu/SSD/datasets/stanford-sentiment-treebank/train.csv"
+  df = pd.read_csv(test_data)
+  df_eval, _ = np.split(df.sample(frac=1, random_state=42),
+                        [int(0.05 * len(df))])
+  print(f"eval datasize: {len(df_eval)}")
+
+  model = BertClassifier()
+  model_path = "models/best_bert_classifier.pt"
+  model.load_state_dict(torch.load(model_path))
+
+  evaler = Evaler(model, 16)
+  evaler.eval(df_eval)
+
+
+if __name__ == "__main__":
+  main()
 
